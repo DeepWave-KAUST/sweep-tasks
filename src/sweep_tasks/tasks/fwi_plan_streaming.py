@@ -1445,8 +1445,9 @@ class PlanStreamingFWIMixin:
                     # pad/trim the resampled wavelet to effective_nt so the solver
                     # runs exactly effective_nt steps → syn length == obs length
                     # (obs is trimmed to effective_nt in the prefetch worker;
-                    # resample rounding else leaves them off by ~1 sample, e.g.
-                    # 1176*(6.8/3.4)=2352 vs round(8s/3.4ms)=2353).
+                    # resample rounding else leaves them off by ~1 sample,
+                    # because effective_nt comes from the record duration while
+                    # the resampler rounds nt_old * dt_old / dt_new).
                     _cur = _wav_np.shape[-1]
                     if _cur > effective_nt:
                         _wav_np = _wav_np[..., :effective_nt]
@@ -1808,8 +1809,8 @@ class PlanStreamingFWIMixin:
                     # comparable to an unwindowed run. Needs a geometry-only
                     # pre-pass because backward() runs per node below and so needs
                     # the norm up front; recomputing each mask is far cheaper than
-                    # holding all B of them (~94 MB each at nt=1176 x nrec=20000
-                    # float32), which is this loop's whole purpose.
+                    # holding all B of them (tens of MB each at a production
+                    # nt x nrec in float32), which is this loop's whole purpose.
                     _gn = 0.0
                     for _j in range(_B_loc):
                         _w0 = _win_j(_j, receivers_super[_j, :int(_nrec_j[_j])][None])
@@ -1837,9 +1838,10 @@ class PlanStreamingFWIMixin:
                         # writes into ``obs_super``, but this loop re-slices the RAW
                         # host ``obs_t`` — so that filter is a DEAD STORE on the
                         # per-CRG path and obs reached the misfit unfiltered. Measured
-                        # on a 2-4 Hz field config: a tiny fraction of obs energy in
-                        # band, 78% above 20 Hz, while syn (band-limited via the
-                        # wavelet, ~line 1346) had ~80% in band. Two signals in
+                        # on a low-frequency field config: a tiny fraction of obs energy
+                        # in band, most of the rest far above it, while syn
+                        # (band-limited via the wavelet, ~line 1346) had ~80% in
+                        # band. Two signals in
                         # disjoint bands are near-orthogonal, which pinned trace_cosine
                         # at ~1.0 (cos 0.015); filtering here lifts cos to 0.52-0.74.
                         # Done per node on-device after the H2D copy: obs_t is

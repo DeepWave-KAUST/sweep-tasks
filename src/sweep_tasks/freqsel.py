@@ -8,7 +8,7 @@ DFT separates the nodes exactly (deterministic zero crosstalk — no ±1 signs,
 no reseeding, no shared-shot intersection sampling).
 
 The observed side is a set of pre-extracted DTFT coefficients (one complex
-number per trace per comb bin, fold-averaged onto 50 m surface cells by the
+number per trace per comb bin, fold-averaged onto surface cells by the
 extraction job) — after extraction the inversion never touches SEG-Y.
 
 Loss: per-node complex-cosine coherence (GCN),
@@ -16,7 +16,8 @@ Loss: per-node complex-cosine coherence (GCN),
 scale — the source wavelet spectrum, excitation delay and sensor
 coupling/polarity all cancel; NO wavelet input exists in this mode.
 
-Validated end-to-end on a field OBN dataset at 2-4 Hz (multi-node DD):
+Validated end-to-end on a field OBN dataset in the low-frequency band
+(multi-node DD):
 see the project notes for the validation run.
 """
 from __future__ import annotations
