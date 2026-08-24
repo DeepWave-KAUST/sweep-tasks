@@ -142,7 +142,7 @@ def test_dump_run_metadata_captures_dd_launch(tmp_path, monkeypatch):
     monkeypatch.setenv("SWEEP_DD_RENDER_CHUNK", "8")
     monkeypatch.setenv("WORLD_SIZE", "12")
     monkeypatch.setenv("LOCAL_RANK", "0")
-    monkeypatch.setenv("SLURM_JOB_ID", "50061884")
+    monkeypatch.setenv("SLURM_JOB_ID", "12345678")
     monkeypatch.setenv("SLURM_NNODES", "3")
     monkeypatch.setenv("SLURM_GPUS_ON_NODE", "4")
     monkeypatch.setenv("SLURM_JOB_PARTITION", "batch")
@@ -162,14 +162,14 @@ def test_dump_run_metadata_captures_dd_launch(tmp_path, monkeypatch):
     assert dd["enabled"] is True and dd["py"] == 4 and dd["px"] == 3
     assert dd["mesh"] == 12 and dd["render_chunk"] == 8
     assert meta["distributed"]["torchrun_env"]["WORLD_SIZE"] == "12"
-    assert meta["distributed"]["slurm"]["SLURM_JOB_ID"] == "50061884"
+    assert meta["distributed"]["slurm"]["SLURM_JOB_ID"] == "12345678"
     assert meta["distributed"]["slurm"]["SLURM_NNODES"] == "3"
 
     # 2) Human-readable summary in the config header (reproduction recipe).
     cfg_text = (target / "config_resolved.yaml").read_text()
     assert "PY=4 x PX=3" in cfg_text and "= 12 tiles" in cfg_text
     assert "SWEEP_DD_PY=4 SWEEP_DD_PX=3" in cfg_text
-    assert "job_id=50061884" in cfg_text and "nnodes=3" in cfg_text
+    assert "job_id=12345678" in cfg_text and "nnodes=3" in cfg_text
 
     # 3) The header MUST NOT break reload: comments are ignored, so the file
     #    still parses as the original (runnable, extra='forbid') spec.
